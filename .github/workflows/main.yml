@@ -1,0 +1,52 @@
+name: CI - MLflow Project Retrain
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.7"
+
+      - name: Check env
+        run: |
+          python --version
+          pip --version
+
+      - name: Install dependencies
+        run: |
+          pip install mlflow==2.19.0 pandas numpy scikit-learn joblib
+
+      - name: Run MLflow Project
+        run: |
+          cd MLProject
+          mlflow run . --env-manager=local
+
+      - name: Get latest MLflow run_id
+        run: |
+          cd MLProject
+          python - <<'PY'
+          import os, glob
+          mlruns = os.path.join(os.getcwd(), "mlruns")
+          exps = sorted(glob.glob(os.path.join(mlruns, "*")))
+          exps = [e for e in exps if os.path.isdir(e) and os.path.basename(e).isdigit()]
+          if not exps:
+              print("No experiments found.")
+              raise SystemExit(1)
+
+          latest_exp = max(exps, key=os.path.getmtime)
+          runs = sorted(glob.glob(os.path.join(latest_exp, "*")))
+          runs = [r for r in runs if os.path.isdir(r) and len(os.path.basename(r)) >= 10]
+          latest_run = max(runs, key=os.path.getmtime)
+          print("Latest run_id:", os.path.basename(latest_run))
+          PY
