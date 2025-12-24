@@ -11,10 +11,10 @@ DATA_DIR = os.path.join(BASE_DIR, "titanic_preprocessing")  # folder ada di MLpr
 
 def load_data():
     X_train = pd.read_csv(os.path.join(DATA_DIR, "X_train.csv"))
-    X_valid = pd.read_csv(os.path.join(DATA_DIR, "X_valid.csv"))
+    X_test = pd.read_csv(os.path.join(DATA_DIR, "X_test.csv"))
     y_train = pd.read_csv(os.path.join(DATA_DIR, "y_train.csv")).values.ravel()
-    y_valid = pd.read_csv(os.path.join(DATA_DIR, "y_valid.csv")).values.ravel()
-    return X_train, X_valid, y_train, y_valid
+    y_test = pd.read_csv(os.path.join(DATA_DIR, "y_test.csv")).values.ravel()
+    return X_train, X_test, y_train, y_test
 
 def main():
     mlflow.set_tracking_uri("file://" + os.path.join(BASE_DIR, "mlruns"))
@@ -30,9 +30,9 @@ def main():
         preds = model.predict(X_valid)
         proba = model.predict_proba(X_valid)[:, 1]
 
-        acc = accuracy_score(y_valid, preds)
-        f1 = f1_score(y_valid, preds)
-        auc = roc_auc_score(y_valid, proba)
+        acc = accuracy_score(y_train, preds)
+        f1 = f1_score(y_train, preds)
+        auc = roc_auc_score(y_train, proba)
 
         mlflow.log_metric("val_accuracy", acc)
         mlflow.log_metric("val_f1", f1)
